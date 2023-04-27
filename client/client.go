@@ -18,6 +18,7 @@ import (
 	"github.com/nixson/nx-imap"
 	"github.com/nixson/nx-imap/commands"
 	"github.com/nixson/nx-imap/responses"
+	"golang.org/x/net/proxy"
 )
 
 // errClosed is used when a connection is closed while waiting for a command
@@ -605,6 +606,24 @@ func New(conn net.Conn) (*Client, error) {
 // Dial connects to an IMAP server using an unencrypted connection.
 func Dial(addr string) (*Client, error) {
 	return DialWithDialer(new(net.Dialer), addr)
+}
+func Proxy(proxyAddr, addr string) (*Client, error) {
+	var socks proxy.Dialer
+	var err error
+	if socks, err = proxy.SOCKS5("tcp", proxyAddr, nil, nil); err != nil {
+		return DialWithDialer(new(net.Dialer), addr)
+	}
+	return DialWithDialer(socks, addr)
+
+}
+func ProxyTLS(proxyAddr, addr string, tlsConfig *tls.Config) (*Client, error) {
+	var socks proxy.Dialer
+	var err error
+	if socks, err = proxy.SOCKS5("tcp", proxyAddr, nil, nil); err != nil {
+		return DialWithDialerTLS(new(net.Dialer), addr, tlsConfig)
+	}
+	return DialWithDialerTLS(socks, addr, tlsConfig)
+
 }
 
 type Dialer interface {

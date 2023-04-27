@@ -2,8 +2,10 @@ package imap
 
 import (
 	"bytes"
+	"encoding/base64"
 	"errors"
 	"fmt"
+	"golang.org/x/text/encoding/charmap"
 	"io"
 	"mime"
 	"strconv"
@@ -113,9 +115,37 @@ var wordDecoder = &mime.WordDecoder{
 func decodeHeader(s string) (string, error) {
 	dec, err := wordDecoder.DecodeHeader(s)
 	if err != nil {
+		fmt.Println(s, s[0:17], s[0:12])
+		if s[0:17] == "=?windows-1251?B?" || s[0:12] == "=?koi8-r?B?" {
+			return decodeRu(s)
+		}
 		return s, err
 	}
 	return dec, nil
+}
+
+func decodeRu(s string) (string, error) {
+	slt := strings.Split(s, " ")
+	result := make([]string, len(slt))
+	for i, str := range slt {
+		if str[0:17] == "=?windows-1251?B?" {
+			decoder := charmap.Windows1251.NewDecoder()
+			fmt.Println(str[17 : len(str)-2])
+			res, _ := base64.StdEncoding.DecodeString(str[17 : len(str)-2])
+			res, _ = decoder.Bytes(res)
+			result[i] = string(res)
+			fmt.Println(res)
+		}
+		if str[0:12] == "=?koi8-r?B?" {
+			decoder := charmap.KOI8R.NewDecoder()
+			fmt.Println(str[12 : len(str)-2])
+			res, _ := base64.StdEncoding.DecodeString(str[12 : len(str)-2])
+			res, _ = decoder.Bytes(res)
+			result[i] = string(res)
+			fmt.Println(res)
+		}
+	}
+	return strings.Join(result, " "), nil
 }
 
 func encodeHeader(s string) string {
