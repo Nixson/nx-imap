@@ -116,7 +116,7 @@ func decodeHeader(s string) (string, error) {
 	dec, err := wordDecoder.DecodeHeader(s)
 	if err != nil {
 		fmt.Println(s, s[0:17], s[0:12])
-		if s[0:17] == "=?windows-1251?B?" || s[0:12] == "=?koi8-r?B?" {
+		if (len(s) > 17 && s[0:17] == "=?windows-1251?B?") || (len(s) > 12 && s[0:12] == "=?koi8-r?B?") {
 			return decodeRu(s)
 		}
 		return s, err
@@ -128,7 +128,7 @@ func decodeRu(s string) (string, error) {
 	slt := strings.Split(s, " ")
 	result := make([]string, len(slt))
 	for i, str := range slt {
-		if str[0:17] == "=?windows-1251?B?" {
+		if len(str) > 17 && str[0:17] == "=?windows-1251?B?" {
 			decoder := charmap.Windows1251.NewDecoder()
 			fmt.Println(str[17 : len(str)-2])
 			res, _ := base64.StdEncoding.DecodeString(str[17 : len(str)-2])
@@ -136,7 +136,7 @@ func decodeRu(s string) (string, error) {
 			result[i] = string(res)
 			fmt.Println(res)
 		}
-		if str[0:12] == "=?koi8-r?B?" {
+		if len(str) > 12 && str[0:12] == "=?koi8-r?B?" {
 			decoder := charmap.KOI8R.NewDecoder()
 			fmt.Println(str[12 : len(str)-2])
 			res, _ := base64.StdEncoding.DecodeString(str[12 : len(str)-2])
