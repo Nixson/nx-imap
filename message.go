@@ -115,7 +115,6 @@ var wordDecoder = &mime.WordDecoder{
 func decodeHeader(s string) (string, error) {
 	dec, err := wordDecoder.DecodeHeader(s)
 	if err != nil {
-		fmt.Println(s, s[0:17], s[0:11])
 		if (len(s) > 17 && s[0:17] == "=?windows-1251?B?") || (len(s) > 11 && s[0:11] == "=?koi8-r?B?") {
 			return decodeRu(s)
 		}
@@ -130,21 +129,18 @@ func decodeRu(s string) (string, error) {
 	for i, str := range slt {
 		if len(str) > 17 && str[0:17] == "=?windows-1251?B?" {
 			decoder := charmap.Windows1251.NewDecoder()
-			fmt.Println(str[17 : len(str)-2])
 			res, _ := base64.StdEncoding.DecodeString(str[17 : len(str)-2])
 			res, _ = decoder.Bytes(res)
 			result[i] = string(res)
-			fmt.Println(res)
 		}
 		if len(str) > 11 && str[0:11] == "=?koi8-r?B?" {
 			decoder := charmap.KOI8R.NewDecoder()
-			fmt.Println(str[11 : len(str)-2])
 			res, _ := base64.StdEncoding.DecodeString(str[11 : len(str)-2])
 			res, _ = decoder.Bytes(res)
 			result[i] = string(res)
-			fmt.Println(res)
 		}
 	}
+	fmt.Println(strings.Join(result, " "))
 	return strings.Join(result, " "), nil
 }
 
